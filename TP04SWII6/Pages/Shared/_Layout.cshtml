@@ -1,0 +1,22 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - TP04SWII6</title>
+</head>
+<body>
+    <header>
+        <a asp-page="/Index">TP04SWII6</a>
+    </header>
+    <main>
+        @RenderBody()
+    </main>
+
+    <footer style="position: absolute; bottom: 1em">
+        &copy; 2024 - TP04SWII6 - Gabriel Martins Alves da Silva
+    </footer>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

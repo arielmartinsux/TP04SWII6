@@ -1,0 +1,177 @@
+﻿@{
+    ViewData["Title"] = "CRUD de Jogos";
+}
+
+
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> <!-- jQuery -->
+</head>
+<body style="font-family: Arial, sans-serif; margin: 20px; background-color: #f8f9fa;">
+    <h1>@ViewData["Title"] - CB3021521</h1>
+
+    <!-- Formulário para criar ou editar jogos -->
+    <form id="gameForm" style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+        <input type="hidden" id="gameId">
+
+        <div style="margin-bottom: 15px;">
+            <label for="gameTitle" style="font-weight: bold; color: #333;">Título do Jogo:</label>
+            <input type="text" id="gameTitle" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="gameGenre" style="font-weight: bold; color: #333;">Gênero:</label>
+            <input type="text" id="gameGenre" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="gamePlatform" style="font-weight: bold; color: #333;">Plataforma:</label>
+            <input type="text" id="gamePlatform" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="gameReleaseDate" style="font-weight: bold; color: #333;">Data de Lançamento:</label>
+            <input type="date" id="gameReleaseDate" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+
+        <button type="submit" style="width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer;">Salvar Jogo</button>
+    </form>
+
+    <h2 style="text-align: center; color: #333; margin-top: 40px;">Lista de Jogos</h2>
+
+    <table id="gamesTable" style="width: 100%; margin-top: 20px; border-collapse: collapse;">
+        <thead style="background-color: #007bff; color: white; font-size: 18px;">
+            <tr>
+                <th style="padding: 10px; border: 1px solid #ddd;">ID</th>
+                <th style="padding: 10px; border: 1px solid #ddd;">Título</th>
+                <th style="padding: 10px; border: 1px solid #ddd;">Gênero</th>
+                <th style="padding: 10px; border: 1px solid #ddd;">Plataforma</th>
+                <th style="padding: 10px; border: 1px solid #ddd;">Data de Lançamento</th>
+                <th style="padding: 10px; border: 1px solid #ddd;">Ações</th>
+            </tr>
+        </thead>
+        <tbody style="font-size: 16px; color: #333;"></tbody>
+    </table>
+
+    <script>
+        const apiUrl = "/api/jogo";
+
+        function loadGames() {
+            $.ajax({
+                url: apiUrl,
+                type: "GET",
+                success: function (data) {
+                    const tbody = $("#gamesTable tbody");
+                    tbody.empty();
+                    data.forEach(game => {
+                        const row = `<tr data-id="${game.id}">
+                                    <td>${game.id}</td>
+                                    <td>${game.titulo}</td>
+                                    <td>${game.genero}</td>
+                                    <td>${game.plataforma}</td>
+                                    <td>${new Date(game.dataLancamento).toLocaleDateString()}</td>
+                                    <td>
+                                        <button onclick="editGame(${game.id})">Editar</button>
+                                        <button onclick="deleteGame(${game.id})">Excluir</button>
+                                    </td>
+                                </tr>`;
+                        tbody.append(row);
+                    });
+                }
+            });
+        }
+
+        function editGame(id) {
+            $.ajax({
+                url: `${apiUrl}/${id}`,
+                type: "GET",
+                success: function (game) {
+                    $("#gameId").val(game.id);
+                    $("#gameTitle").val(game.titulo);
+                    $("#gameGenre").val(game.genero);
+                    $("#gamePlatform").val(game.plataforma);
+                    $("#gameReleaseDate").val(new Date(game.dataLancamento).toISOString().split('T')[0]);
+                }
+            });
+        }
+
+        function deleteGame(id) {
+            if (confirm("Tem certeza que deseja excluir este jogo?")) {
+                $.ajax({
+                    url: `${apiUrl}/${id}`,
+                    type: "DELETE",
+                    success: function () {
+                        loadGames();
+                        alert("Jogo excluído com sucesso!");
+                    }
+                });
+            }
+        }
+
+        $("#gameForm").submit(function (event) {
+            event.preventDefault();
+
+            const game = {
+                id: $("#gameId").val(), 
+                titulo: $("#gameTitle").val(),
+                genero: $("#gameGenre").val(),
+                plataforma: $("#gamePlatform").val(),
+                dataLancamento: $("#gameReleaseDate").val()
+            };
+
+            if (!game.titulo || !game.genero || !game.plataforma || !game.dataLancamento) {
+                alert("Por favor, preencha todos os campos obrigatórios!");
+                return;
+            }
+
+            if (game.id) {
+                $.ajax({
+                    url: `${apiUrl}/${game.id}`,
+                    type: "PUT",
+                    contentType: "application/json",
+                    data: JSON.stringify(game),
+                    success: function () {
+                        loadGames();
+                        alert("Jogo atualizado com sucesso!");
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Erro ao atualizar jogo:", status, error);
+                        alert("Erro ao atualizar o jogo.");
+                    }
+                });
+            } else {
+                $.ajax({
+                url: apiUrl,
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    titulo: $("#gameTitle").val(),
+                    genero: $("#gameGenre").val(),
+                    plataforma: $("#gamePlatform").val(),
+                    dataLancamento: $("#gameReleaseDate").val()}),
+                success: function(response) {
+                    loadGames();
+                    alert("Jogo criado com sucesso!");
+                },
+                error: function(xhr, status, error) {
+                    console.error("Erro ao criar jogo:", status, error);
+                    alert("Erro ao criar o jogo.");
+                }
+            });
+            }
+
+            $("#gameForm")[0].reset();
+            $("#gameId").val('');
+        });
+
+        $(document).ready(function () {
+            loadGames();
+        });
+    </script>
+</body>
+</html>

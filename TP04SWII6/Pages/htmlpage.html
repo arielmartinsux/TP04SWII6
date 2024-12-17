@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Jogos</title>
+</head>
+<body>
+    <h1>Lista de Jogos</h1>
+    <form id="jogoForm">
+        <input type="text" id="titulo" placeholder="Título do Jogo" required />
+        <input type="text" id="genero" placeholder="Gênero" required />
+        <input type="text" id="plataforma" placeholder="Plataforma" required />
+        <input type="date" id="dataLancamento" required />
+        <button type="button" onclick="adicionarJogo()">Adicionar Jogo</button>
+    </form>
+
+    <h2>Jogos Cadastrados</h2>
+    <ul id="listaJogos"></ul>
+
+    <script>
+        const apiUrl = "https://localhost:5001/api/Jogo";
+
+        async function listarJogos() {
+            const response = await fetch(apiUrl);
+            const jogos = await response.json();
+            const lista = document.getElementById("listaJogos");
+            lista.innerHTML = "";
+            jogos.forEach(jogo => {
+                const item = document.createElement("li");
+                item.textContent = `${jogo.titulo} - ${jogo.genero} - ${jogo.plataforma} - ${jogo.dataLancamento}`;
+                lista.appendChild(item);
+            });
+        }
+
+        async function adicionarJogo() {
+            const jogo = {
+                titulo: document.getElementById("titulo").value,
+                genero: document.getElementById("genero").value,
+                plataforma: document.getElementById("plataforma").value,
+                dataLancamento: document.getElementById("dataLancamento").value
+            };
+
+            await fetch(apiUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(jogo)
+            });
+
+            listarJogos();
+        }
+
+        document.addEventListener("DOMContentLoaded", listarJogos);
+    </script>
+</body>
+</html>
